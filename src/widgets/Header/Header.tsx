@@ -48,8 +48,8 @@ export const Header = () => {
       <div className="header-container">
         <div className="header-logo">
           <h1>
-            <span className="logo-gos">Gos</span>
-            <span className="logo-lance">Lance</span>
+            <span className="logo-gos">ГОС</span>
+            <span className="logo-lance">Тендер</span>
           </h1>
         </div>
         <nav className="header-nav">
@@ -63,7 +63,7 @@ export const Header = () => {
             to="/exchange"
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
           >
-            Биржа заказов
+            Тендеры
           </NavLink>
           <button
             className="theme-toggle"
