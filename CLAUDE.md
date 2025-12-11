@@ -28,6 +28,69 @@ npm run lint
 npm run preview
 ```
 
+## Docker Deployment
+
+The project includes Docker support for both development and production environments.
+
+### Development Mode (with hot reload)
+
+```bash
+# Start development server with hot reload
+docker-compose -f docker-compose.dev.yml up
+
+# Access application at http://localhost:5173
+```
+
+**Features:**
+- Vite dev server with hot module replacement (HMR)
+- Source code volume mounting for instant updates
+- API proxy to backend configured
+- File watching with polling (works on Windows/Mac/Linux)
+
+### Production Mode
+
+```bash
+# Build and start production server
+docker-compose up -d
+
+# Access application at http://localhost:8080
+
+# View logs
+docker-compose logs -f
+
+# Stop containers
+docker-compose down
+```
+
+**Features:**
+- Nginx serving optimized static build
+- Gzip compression enabled
+- Static asset caching (1 year expiry)
+- SPA routing configured
+- API proxy to backend
+- Health check endpoint at `/health`
+- Security headers (X-Content-Type-Options, X-Frame-Options)
+
+### Environment Variables
+
+The project uses environment variables for configuration. Create a `.env` file in the project root:
+
+```env
+VITE_AGENT_BASE_URL=https://dddaf9c8-180e-4976-8a95-0cb1a1958523-agent.ai-agent.inference.cloud.ru
+```
+
+For development mode, the `.env` file is automatically mounted. For production, the backend URL is configured in `nginx.conf`.
+
+### Docker Architecture
+
+- **Multi-stage Dockerfile** with 4 stages:
+  1. `base` - Install Node.js dependencies
+  2. `development` - Dev server setup
+  3. `builder` - Production build
+  4. `production` - Nginx with static files
+- **Development image**: ~300MB (includes Node.js and source)
+- **Production image**: <50MB (only Nginx and static files)
+
 ## Architecture & Structure
 
 ### Technology Stack

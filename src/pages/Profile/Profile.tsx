@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { Message, SavedCompany } from '../../shared/types';
 import { AgentClient } from '../../shared/lib/agentClient';
 import { CompanyManager } from '../../shared/lib/companyManager';
+import { MarkdownMessage } from '../../shared/ui/MarkdownMessage/MarkdownMessage';
 import './Profile.css';
 
 export const Profile = () => {
@@ -210,7 +211,7 @@ export const Profile = () => {
                     }}></span>
                   </div>
                 ) : (
-                  message.text
+                  <MarkdownMessage content={message.text} />
                 )}
               </div>
             </div>

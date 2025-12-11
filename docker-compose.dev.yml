@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  goslance-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: goslance-dev
+    ports:
+      - "5173:5173"
+    volumes:
+      # Mount source code for hot reload
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./index.html:/app/index.html
+      - ./vite.config.ts:/app/vite.config.ts
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./tsconfig.app.json:/app/tsconfig.app.json
+      - ./tsconfig.node.json:/app/tsconfig.node.json
+      - ./.env:/app/.env
+    environment:
+      - NODE_ENV=development
+      - VITE_AGENT_BASE_URL=${VITE_AGENT_BASE_URL:-https://dddaf9c8-180e-4976-8a95-0cb1a1958523-agent.ai-agent.inference.cloud.ru}
+    networks:
+      - goslance-network
+    stdin_open: true
+    tty: true
+
+networks:
+  goslance-network:
+    driver: bridge

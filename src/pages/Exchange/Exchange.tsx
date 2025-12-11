@@ -4,6 +4,7 @@ import type { GovernmentOrder, Message, SavedCompany } from '../../shared/types'
 import { MOCK_GOVERNMENT_ORDERS } from '../../shared/lib/mockData';
 import { AgentClient } from '../../shared/lib/agentClient';
 import { CompanyManager } from '../../shared/lib/companyManager';
+import { MarkdownMessage } from '../../shared/ui/MarkdownMessage/MarkdownMessage';
 import './Exchange.css';
 
 export const Exchange = () => {
@@ -237,7 +238,7 @@ export const Exchange = () => {
                         }}></span>
                       </div>
                     ) : (
-                      <div style={{ whiteSpace: 'pre-wrap' }}>{message.text}</div>
+                      <MarkdownMessage content={message.text} />
                     )}
                   </div>
                 </div>

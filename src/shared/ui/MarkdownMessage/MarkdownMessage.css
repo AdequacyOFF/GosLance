@@ -1,0 +1,172 @@
+.markdown-message {
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+/* Headings */
+.markdown-message h1,
+.markdown-message h2,
+.markdown-message h3,
+.markdown-message h4,
+.markdown-message h5,
+.markdown-message h6 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.markdown-message h1 {
+  font-size: 1.5em;
+  border-bottom: 1px solid var(--border-primary);
+  padding-bottom: 8px;
+}
+
+.markdown-message h2 {
+  font-size: 1.3em;
+}
+
+.markdown-message h3 {
+  font-size: 1.15em;
+}
+
+/* Paragraphs */
+.markdown-message p {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+/* Links */
+.markdown-message a {
+  color: var(--accent-primary);
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.markdown-message a:hover {
+  color: var(--accent-light);
+}
+
+/* Code blocks */
+.markdown-message pre {
+  background: var(--bg-input);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 12px 0;
+  overflow-x: auto;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+.markdown-message pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-primary);
+}
+
+/* Inline code */
+.markdown-message code.inline-code,
+.markdown-message :not(pre) > code {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--accent-light);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+/* Lists */
+.markdown-message ul,
+.markdown-message ol {
+  margin: 12px 0;
+  padding-left: 24px;
+}
+
+.markdown-message li {
+  margin-bottom: 6px;
+}
+
+.markdown-message ul ul,
+.markdown-message ol ol,
+.markdown-message ul ol,
+.markdown-message ol ul {
+  margin: 4px 0;
+}
+
+/* Blockquotes */
+.markdown-message blockquote {
+  border-left: 3px solid var(--accent-primary);
+  padding-left: 16px;
+  margin: 12px 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.markdown-message blockquote p {
+  margin: 8px 0;
+}
+
+/* Horizontal rules */
+.markdown-message hr {
+  border: none;
+  border-top: 1px solid var(--border-primary);
+  margin: 20px 0;
+}
+
+/* Tables (GitHub Flavored Markdown) */
+.markdown-message table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 12px 0;
+  overflow-x: auto;
+  display: block;
+}
+
+.markdown-message table th,
+.markdown-message table td {
+  border: 1px solid var(--border-primary);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.markdown-message table th {
+  background: rgba(59, 130, 246, 0.1);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.markdown-message table tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Task lists */
+.markdown-message input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+/* Strong and emphasis */
+.markdown-message strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.markdown-message em {
+  font-style: italic;
+}
+
+/* Strikethrough (GFM) */
+.markdown-message del {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+/* Images */
+.markdown-message img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 12px 0;
+}
