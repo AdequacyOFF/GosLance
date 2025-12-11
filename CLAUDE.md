@@ -72,9 +72,9 @@ src/
 
 **API Endpoint**: `https://dfa652ee-bdb5-4b20-9cc8-ebe111228af2-agent.ai-agent.inference.cloud.ru` (proxied via `/api` in development)
 
-The application communicates with an AI agent backend using a custom protocol:
+The application communicates with an AI agent backend using JSON-RPC 2.0 protocol:
 
-- **Request Format**: JSON-RPC style with `id`, `params.message`, and `params.metadata`
+- **Request Format**: JSON-RPC 2.0 with `jsonrpc: "2.0"`, `method: "execute"`, `id`, and `params`
 - **Message Structure**: Messages have `role`, `parts` (text content), and `messageId`
 - **Metadata**: Includes `session_id` (generated UUID) and optional `company_id`
 - **Response Format**: Returns `result.history` array of messages

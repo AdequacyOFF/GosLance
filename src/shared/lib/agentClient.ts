@@ -14,6 +14,8 @@ export class AgentClient {
     const requestId = this.generateUUID();
 
     const request: SendMessageRequest = {
+      jsonrpc: '2.0',
+      method: 'execute',
       id: requestId,
       params: {
         message: {
@@ -43,7 +45,9 @@ export class AgentClient {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to send message: ${response.statusText}`);
+      const errorBody = await response.text();
+      console.error('Agent API error:', response.status, errorBody);
+      throw new Error(`Failed to send message: ${response.status} ${response.statusText}`);
     }
 
     return response.json();

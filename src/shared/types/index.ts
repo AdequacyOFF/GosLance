@@ -66,6 +66,8 @@ export interface MessageSendParams {
 }
 
 export interface SendMessageRequest {
+  jsonrpc: '2.0';
+  method: 'execute';
   id: string;
   params: MessageSendParams;
 }
