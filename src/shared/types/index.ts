@@ -1,3 +1,10 @@
+// Import A2A SDK types
+import type { Message as A2AMessage, Task } from '@a2a-js/sdk';
+
+// Re-export SDK types for convenience
+export type { A2AMessage, Task };
+
+// UI-specific types
 export interface Message {
   id: string;
   text: string;
@@ -46,36 +53,32 @@ export interface SavedCompany {
   company_name: string;
 }
 
-export interface AgentMessagePart {
-  kind: 'text';
-  text: string;
-}
-
-export interface AgentMessage {
-  role: 'user' | 'assistant';
-  parts: AgentMessagePart[];
-  messageId: string;
-}
-
-export interface MessageSendParams {
-  message: AgentMessage;
-  metadata: {
-    session_id: string;
-    company_id?: string;
-  };
-}
-
-export interface SendMessageRequest {
-  jsonrpc: '2.0';
-  method: 'execute';
-  id: string;
-  params: MessageSendParams;
-}
-
+// Agent Response (now using SDK types)
 export interface AgentResponse {
   result?: {
-    history?: AgentMessage[];
-    [key: string]: any;
+    // Task-based response with history array (current A2A format)
+    history?: Array<{
+      role: string;
+      parts: Array<{ kind: string; text?: string; [key: string]: any }>;
+      messageId?: string;
+      contextId?: string;
+      taskId?: string;
+      [key: string]: any;
+    }>;
+    kind?: string;
+    status?: {
+      state: string;
+      message?: any;
+      timestamp?: string;
+    };
+    // Direct message response (fallback for backward compatibility)
+    message?: A2AMessage;
+    task?: Task;
+  };
+  error?: {
+    code: number;
+    message: string;
+    data?: unknown;
   };
 }
 

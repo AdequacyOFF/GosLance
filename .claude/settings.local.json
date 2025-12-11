@@ -5,7 +5,12 @@
       "Bash(npm run dev:*)",
       "Bash(npx tsc:*)",
       "Bash(dir:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebSearch",
+      "WebFetch(domain:a2aprotocol.ai)"
     ],
     "deny": [],
     "ask": []

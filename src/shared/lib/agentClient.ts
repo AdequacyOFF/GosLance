@@ -1,85 +1,136 @@
-import type { AgentMessage, SendMessageRequest, AgentResponse, CompanyProfileResponse } from '../types';
+import { A2AClient, ClientFactory } from '@a2a-js/sdk/client';
+import type { MessageSendParams } from '@a2a-js/sdk';
+import { v4 as uuidv4 } from 'uuid';
+import type { AgentResponse, CompanyProfileResponse } from '../types';
 
-const BASE_URL = import.meta.env.VITE_AGENT_BASE_URL || (import.meta.env.DEV ? '/api' : 'https://dfa652ee-bdb5-4b20-9cc8-ebe111228af2-agent.ai-agent.inference.cloud.ru');
+const BASE_URL = 'https://dddaf9c8-180e-4976-8a95-0cb1a1958523-agent.ai-agent.inference.cloud.ru';
 
 export class AgentClient {
+  private client: A2AClient | null = null;
   private sessionId: string;
+  private initPromise: Promise<void> | null = null;
 
   constructor(sessionId: string) {
     this.sessionId = sessionId;
   }
 
-  async sendMessage(userText: string, companyId?: string): Promise<AgentResponse> {
-    const messageId = this.generateUUID();
-    const requestId = this.generateUUID();
+  private async initializeClient(): Promise<void> {
+    try {
+      // 1. Fetch agent card from .well-known endpoint
+      console.log(`Fetching agent card from: ${BASE_URL}/.well-known/agent-card.json`);
+      const response = await fetch(`${BASE_URL}/.well-known/agent-card.json`);
 
-    const request: SendMessageRequest = {
-      jsonrpc: '2.0',
-      method: 'execute',
-      id: requestId,
-      params: {
-        message: {
-          role: 'user',
-          parts: [
-            {
-              kind: 'text',
-              text: userText,
-            },
-          ],
-          messageId: messageId,
-        },
-        metadata: {
-          session_id: this.sessionId,
-          ...(companyId && { company_id: companyId }),
-        },
+      if (!response.ok) {
+        throw new Error(`Failed to fetch agent card: ${response.status} ${response.statusText}`);
+      }
+
+      const agentCard: any = await response.json();
+
+      // 2. Override internal URL with public endpoint
+      console.log('Original agent card URL:', agentCard.url);
+      agentCard.url = BASE_URL;
+      console.log('Overridden agent card URL:', agentCard.url);
+
+      // 3. Create client with modified agent card
+      // Try multiple approaches depending on SDK API:
+      try {
+        // Approach 1: Pass agent card directly to A2AClient
+        this.client = new A2AClient(agentCard);
+      } catch (error) {
+        // Approach 2: Use ClientFactory if direct instantiation fails
+        console.log('Fallback to ClientFactory...');
+        const factory = new ClientFactory();
+        // If createFromAgentCard exists, use it
+        if (typeof (factory as any).createFromAgentCard === 'function') {
+          this.client = await (factory as any).createFromAgentCard(agentCard);
+        } else {
+          // Fallback: use createFromUrl and hope it works
+          this.client = await factory.createFromUrl(BASE_URL);
+        }
+      }
+
+      console.log('A2A Client initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize A2A client:', error);
+      throw error;
+    }
+  }
+
+  private async ensureInitialized(): Promise<void> {
+    if (this.client) return;
+
+    // Prevent multiple concurrent initializations
+    if (!this.initPromise) {
+      this.initPromise = this.initializeClient();
+    }
+
+    await this.initPromise;
+  }
+
+  async sendMessage(userText: string, companyId?: string): Promise<AgentResponse> {
+    // Lazy initialization
+    await this.ensureInitialized();
+
+    if (!this.client) {
+      throw new Error('A2A Client not initialized');
+    }
+
+    const messageParams: MessageSendParams = {
+      message: {
+        messageId: uuidv4(),
+        role: 'user',
+        parts: [{ kind: 'text', text: userText }],
+        kind: 'message',
+      },
+      configuration: {
+        blocking: true,
+        acceptedOutputModes: ['text/plain'],
+      },
+      metadata: {
+        session_id: this.sessionId,
+        ...(companyId && { company_id: companyId }),
       },
     };
 
-    // Use BASE_URL directly (mimics Python: agent_card.url = BASE_URL)
-    const response = await fetch(`${BASE_URL}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('Agent API error:', response.status, errorBody);
-      throw new Error(`Failed to send message: ${response.status} ${response.statusText}`);
+    try {
+      const response = await this.client.sendMessage(messageParams);
+      return response as AgentResponse;
+    } catch (error) {
+      console.error('Agent API error:', error);
+      throw error;
     }
-
-    return response.json();
   }
 
   extractAssistantText(response: AgentResponse): string | null {
+    // Handle task-based responses with history array (current A2A format)
     const history = response.result?.history;
-    if (!history || history.length === 0) {
-      return null;
-    }
+    if (history && Array.isArray(history)) {
+      // Find the last agent message in history
+      for (let i = history.length - 1; i >= 0; i--) {
+        const msg = history[i];
+        if (msg.role === 'agent' && msg.parts && msg.parts.length > 0) {
+          const textParts = msg.parts
+            .filter((p: any) => p.kind === 'text' && p.text)
+            .map((p: any) => p.text as string);
 
-    let assistantMsg: AgentMessage | null = null;
-    for (let i = history.length - 1; i >= 0; i--) {
-      if (history[i].role !== 'user') {
-        assistantMsg = history[i];
-        break;
+          if (textParts.length > 0) {
+            return textParts.join('\n');
+          }
+        }
       }
     }
 
-    if (!assistantMsg && history.length >= 2) {
-      assistantMsg = history[history.length - 2];
+    // Fallback: try direct message field (for backward compatibility)
+    const message = response.result?.message;
+    if (message && message.parts) {
+      const textParts = message.parts
+        .filter((p) => p.kind === 'text' && p.text)
+        .map((p) => p.text as string);
+
+      return textParts.length > 0 ? textParts.join('\n') : null;
     }
 
-    if (!assistantMsg) {
-      return null;
-    }
-
-    const textParts = assistantMsg.parts
-      .filter((p) => p.kind === 'text')
-      .map((p) => p.text);
-
-    return textParts.length > 0 ? textParts.join('\n') : null;
+    return null;
   }
 
   parseCompanyProfileResponse(text: string): CompanyProfileResponse | null {
@@ -105,13 +156,5 @@ export class AgentClient {
 
   hasThinkingTag(text: string): boolean {
     return /<think>/i.test(text);
-  }
-
-  private generateUUID(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
   }
 }

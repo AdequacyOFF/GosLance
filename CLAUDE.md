@@ -70,20 +70,28 @@ src/
 
 ### Backend Integration
 
-**API Endpoint**: `https://dfa652ee-bdb5-4b20-9cc8-ebe111228af2-agent.ai-agent.inference.cloud.ru` (proxied via `/api` in development)
+**API Endpoint**: `https://dddaf9c8-180e-4976-8a95-0cb1a1958523-agent.ai-agent.inference.cloud.ru` (proxied via `/api` in development)
 
-The application communicates with an AI agent backend using JSON-RPC 2.0 protocol:
+The application uses the **official @a2a-js/sdk** package to communicate with the A2A agent backend:
 
-- **Request Format**: JSON-RPC 2.0 with `jsonrpc: "2.0"`, `method: "execute"`, `id`, and `params`
-- **Message Structure**: Messages have `role`, `parts` (text content), and `messageId`
-- **Metadata**: Includes `session_id` (generated UUID) and optional `company_id`
-- **Response Format**: Returns `result.history` array of messages
+- **SDK**: `@a2a-js/sdk` (official A2A JavaScript SDK)
+- **Client**: `A2AClient` class handles all protocol details automatically
+- **Agent Card**: Fetched from `/.well-known/agent-card.json` on initialization
+- **URL Override**: Agent card's internal URL is overridden with the public endpoint
+- **Lazy Initialization**: Client is initialized on first message send
+- **Message Format**: Uses `MessageSendParams` type from SDK with:
+  - `message`: Contains user text in `parts` array with `messageId`
+  - `configuration`: Blocking mode, accepted output modes
+  - `metadata`: Includes `session_id` (generated UUID) and optional `company_id`
+- **Response Types**: SDK-provided `Message` and `Task` types
+- **Protocol**: Automatic JSON-RPC 2.0 handling by SDK
+- **Features**: Streaming support, task management, artifact handling
 - **Special Responses**:
   - Company profile creation returns JSON with `company_id` and `completion_token: "<TASK_DONE>"`
   - Agent may include `<think>` tags (should be stripped from display)
   - Agent may include `<NEED_USER_INPUT>` markers
 
-See `src/shared/lib/agentClient.ts` for full implementation details.
+See `src/shared/lib/agentClient.ts` for implementation using `A2AClient` with agent card URL override.
 
 ### State Management
 
