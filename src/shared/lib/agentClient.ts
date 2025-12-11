@@ -1,6 +1,6 @@
 import type { AgentMessage, SendMessageRequest, AgentResponse, CompanyProfileResponse } from '../types';
 
-const BASE_URL = import.meta.env.VITE_AGENT_BASE_URL || (import.meta.env.DEV ? '/api' : 'http://5.129.212.83:52000');
+const BASE_URL = import.meta.env.VITE_AGENT_BASE_URL || (import.meta.env.DEV ? '/api' : 'https://dfa652ee-bdb5-4b20-9cc8-ebe111228af2-agent.ai-agent.inference.cloud.ru');
 
 export class AgentClient {
   private sessionId: string;
