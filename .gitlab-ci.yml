@@ -1,0 +1,52 @@
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  image: docker:28.5
+  tags:
+    - docker
+    - other
+  services:
+    - name: docker:dind
+      alias: docker
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+
+  script:
+    - docker build -t gos-lance-front:latest .
+    - docker save gos-lance-front:latest > gos-lance-front.tar
+
+  artifacts:
+    paths:
+      - front.tar
+    expire_in: 10 minutes
+
+  only:
+    - main
+
+deploy:
+  stage: deploy
+  image: docker:28.5
+  tags:
+    - docker
+    - nexus
+  dependencies:
+    - build
+  services:
+    - name: docker:dind
+      alias: docker
+  variables:
+    COMPOSE_PROJECT_NAME: "gos-lance-front"
+    DOCKER_TLS_CERTDIR: ""
+
+  before_script:
+  - apk add --no-cache docker-compose
+
+  script:
+    - docker load < gos-lance-front.tar
+    - docker-compose up -d
+
+  only:
+  - main
