@@ -3,22 +3,21 @@ import type { MessageSendParams } from '@a2a-js/sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type { AgentResponse, CompanyProfileResponse } from '../types';
 
-const BASE_URL = 'https://dddaf9c8-180e-4976-8a95-0cb1a1958523-agent.ai-agent.inference.cloud.ru';
-
 export class AgentClient {
   private client: A2AClient | null = null;
   private sessionId: string;
+  private baseUrl: string;
   private initPromise: Promise<void> | null = null;
 
-  constructor(sessionId: string) {
+  constructor(sessionId: string, baseUrl: string) {
     this.sessionId = sessionId;
+    this.baseUrl = baseUrl;
   }
 
   private async initializeClient(): Promise<void> {
     try {
-      // 1. Fetch agent card from .well-known endpoint
-      console.log(`Fetching agent card from: ${BASE_URL}/.well-known/agent-card.json`);
-      const response = await fetch(`${BASE_URL}/.well-known/agent-card.json`);
+      console.log(`Fetching agent card from: ${this.baseUrl}/.well-known/agent-card.json`);
+      const response = await fetch(`${this.baseUrl}/.well-known/agent-card.json`);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch agent card: ${response.status} ${response.statusText}`);
@@ -26,26 +25,19 @@ export class AgentClient {
 
       const agentCard: any = await response.json();
 
-      // 2. Override internal URL with public endpoint
       console.log('Original agent card URL:', agentCard.url);
-      agentCard.url = BASE_URL;
+      agentCard.url = this.baseUrl;
       console.log('Overridden agent card URL:', agentCard.url);
 
-      // 3. Create client with modified agent card
-      // Try multiple approaches depending on SDK API:
       try {
-        // Approach 1: Pass agent card directly to A2AClient
         this.client = new A2AClient(agentCard);
       } catch (error) {
-        // Approach 2: Use ClientFactory if direct instantiation fails
         console.log('Fallback to ClientFactory...');
         const factory = new ClientFactory();
-        // If createFromAgentCard exists, use it
         if (typeof (factory as any).createFromAgentCard === 'function') {
           this.client = await (factory as any).createFromAgentCard(agentCard);
         } else {
-          // Fallback: use createFromUrl and hope it works
-          this.client = await factory.createFromUrl(BASE_URL);
+          this.client = await factory.createFromUrl(this.baseUrl);
         }
       }
 
@@ -138,12 +130,12 @@ export class AgentClient {
       const jsonMatch = text.match(/\{[\s\S]*"company_id"[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        if (parsed.company_id && parsed.completion_token === '<TASK_DONE>') {
+        if (parsed.company_id && parsed.company_name) {
           return parsed as CompanyProfileResponse;
         }
       }
     } catch (e) {
-      // Not a JSON response
+      return null;
     }
     return null;
   }

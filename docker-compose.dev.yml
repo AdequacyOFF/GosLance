@@ -10,7 +10,6 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      # Mount source code for hot reload
       - ./src:/app/src
       - ./public:/app/public
       - ./index.html:/app/index.html

@@ -119,7 +119,7 @@ src/
    - User enters profile page with chatbot interface (similar to 1.png)
    - AI assistant conducts conversation to gather company information
    - User provides information about their team, capabilities, and portfolio
-   - When profile is complete, backend returns JSON with `company_id` and `completion_token: "<TASK_DONE>"`
+   - When profile is complete, backend returns JSON with `company_id` and `company_name`
    - Company profile is saved to localStorage
    - "Start search" button appears to navigate to exchange page
    - Users can switch between multiple saved company profiles
@@ -133,7 +133,15 @@ src/
 
 ### Backend Integration
 
-**API Endpoint**: `https://dddaf9c8-180e-4976-8a95-0cb1a1958523-agent.ai-agent.inference.cloud.ru` (proxied via `/api` in development)
+The application uses two separate AI agents:
+
+1. **Profile Agent**: `https://31fd7d3f-2580-4179-b86a-3b5125118293-agent.ai-agent.inference.cloud.ru`
+   - Used on the Profile page for company onboarding
+   - Returns JSON with `company_id` and `company_name`
+
+2. **Orders Agent**: `https://25855856-ed62-4327-8321-92831b4810bd-agent.ai-agent.inference.cloud.ru`
+   - Used on the Exchange page for tender matching
+   - Receives `company_id` in metadata
 
 The application uses the **official @a2a-js/sdk** package to communicate with the A2A agent backend:
 
@@ -150,7 +158,7 @@ The application uses the **official @a2a-js/sdk** package to communicate with th
 - **Protocol**: Automatic JSON-RPC 2.0 handling by SDK
 - **Features**: Streaming support, task management, artifact handling
 - **Special Responses**:
-  - Company profile creation returns JSON with `company_id` and `completion_token: "<TASK_DONE>"`
+  - Profile agent returns JSON with `company_id` and `company_name` when profile is complete
   - Agent may include `<think>` tags (should be stripped from display)
   - Agent may include `<NEED_USER_INPUT>` markers
 

@@ -15,15 +15,16 @@ export const Exchange = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<SavedCompany | null>(null);
   const [companies, setCompanies] = useState<SavedCompany[]>([]);
-  const [agentClient] = useState(() => new AgentClient(generateSessionId()));
+  const [agentClient] = useState(() => new AgentClient(
+    generateSessionId(),
+    'https://25855856-ed62-4327-8321-92831b4810bd-agent.ai-agent.inference.cloud.ru'
+  ));
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Load saved companies
     const savedCompanies = CompanyManager.getCompanies();
     setCompanies(savedCompanies);
 
-    // Get company from navigation state
     const stateCompany = location.state?.company as SavedCompany | undefined;
     if (stateCompany) {
       setSelectedCompany(stateCompany);
@@ -107,19 +108,15 @@ export const Exchange = () => {
     setIsLoading(true);
 
     try {
-      // Show thinking indicator
       addAssistantMessage('Ищу подходящие тендеры...', undefined, true);
 
-      // Send message to agent with company ID
       const response = await agentClient.sendMessage(
         userText,
         selectedCompany.company_id
       );
 
-      // Remove thinking indicator
       setMessages(prev => prev.filter(m => !m.isThinking));
 
-      // Extract and process response
       const rawText = agentClient.extractAssistantText(response);
       if (!rawText) {
         addAssistantMessage('Извините, произошла ошибка. Попробуйте еще раз.');
@@ -127,13 +124,10 @@ export const Exchange = () => {
         return;
       }
 
-      // Clean agent response
       const cleanText = agentClient.cleanAgentText(rawText);
 
-      // Get orders (in production, parse from agent response)
       const orders = filterOrders(userText);
 
-      // Stream the response text with orders
       await streamText(cleanText, orders);
     } catch (error) {
       console.error('Error sending message:', error);
@@ -186,8 +180,9 @@ export const Exchange = () => {
   return (
     <div className="exchange-page">
       <div className="exchange-container">
-        {/* Chat-style interface */}
         <div className="chat-container" style={{
+          width: '100%',
+          maxWidth: '900px',
           display: 'flex',
           flexDirection: 'column',
           height: '85vh',
@@ -196,7 +191,6 @@ export const Exchange = () => {
           border: '1px solid var(--border-primary)',
           boxShadow: '0 20px 60px var(--shadow-glow)'
         }}>
-          {/* Messages */}
           <div className="messages-container" style={{
             flex: 1,
             overflowY: 'auto',
@@ -243,7 +237,6 @@ export const Exchange = () => {
                   </div>
                 </div>
 
-                {/* Order cards displayed inside chat */}
                 {message.orders && message.orders.length > 0 && (
                   <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {message.orders.map((order) => (
@@ -269,7 +262,7 @@ export const Exchange = () => {
                             <span className="detail-value">{order.budget}</span>
                           </div>
                           <div className="detail-item">
-                            <span className="detail-label">Срок:</span>
+                            <span className="detail-label">Дата заявки:</span>
                             <span className="detail-value">
                               {new Date(order.deadline).toLocaleDateString('ru-RU', {
                                 year: 'numeric',
@@ -301,7 +294,6 @@ export const Exchange = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input area */}
           <div className="input-container">
             {companies.length > 0 && (
               <div style={{

@@ -14,15 +14,16 @@ export const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<SavedCompany | null>(null);
   const [companies, setCompanies] = useState<SavedCompany[]>([]);
-  const [agentClient] = useState(() => new AgentClient(generateSessionId()));
+  const [agentClient] = useState(() => new AgentClient(
+    generateSessionId(),
+    'https://31fd7d3f-2580-4179-b86a-3b5125118293-agent.ai-agent.inference.cloud.ru'
+  ));
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Load saved companies
     const savedCompanies = CompanyManager.getCompanies();
     setCompanies(savedCompanies);
 
-    // Add initial greeting
     const greeting: Message = {
       id: 'greeting',
       text: 'Здравствуйте! Я ваш AI-ассистент. Я помогу вам создать профиль компании для поиска государственных тендеров. Расскажите о вашей компании: название, чем занимаетесь, ваш опыт и портфолио проектов.',
@@ -96,16 +97,12 @@ export const Profile = () => {
     setIsLoading(true);
 
     try {
-      // Show thinking indicator
       addAssistantMessage('Думаю...', true);
 
-      // Send message to agent
       const response = await agentClient.sendMessage(userText);
 
-      // Remove thinking indicator
       setMessages(prev => prev.filter(m => !m.isThinking));
 
-      // Extract and process response
       const rawText = agentClient.extractAssistantText(response);
       if (!rawText) {
         addAssistantMessage('Извините, произошла ошибка. Попробуйте еще раз.');
@@ -113,26 +110,22 @@ export const Profile = () => {
         return;
       }
 
-      // Check if this is a company profile response
       const profileResponse = agentClient.parseCompanyProfileResponse(rawText);
       if (profileResponse) {
-        // Save company
         const newCompany: SavedCompany = {
           company_id: profileResponse.company_id,
-          company_name: profileResponse.profile.name,
+          company_name: profileResponse.company_name,
         };
         CompanyManager.saveCompany(newCompany);
         setCompanies(CompanyManager.getCompanies());
         setSelectedCompany(newCompany);
 
-        // Show success message
         await streamText(
           `✅ Профиль компании "${newCompany.company_name}" успешно создан!\n\nID компании: ${newCompany.company_id}\n\nТеперь вы можете перейти к поиску подходящих тендеров.`
         );
 
         setIsComplete(true);
       } else {
-        // Clean and display agent response
         const cleanText = agentClient.cleanAgentText(rawText);
         await streamText(cleanText);
       }

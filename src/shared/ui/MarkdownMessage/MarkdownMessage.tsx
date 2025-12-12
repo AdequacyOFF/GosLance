@@ -15,7 +15,6 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeSanitize]}
         components={{
-          // Custom link component with security
           a: ({ node, ...props }) => (
             <a
               {...props}
@@ -23,7 +22,6 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
               rel="noopener noreferrer"
             />
           ),
-          // Code blocks with proper class
           code: ({ node, inline, className, children, ...props }) => {
             return inline ? (
               <code className="inline-code" {...props}>
