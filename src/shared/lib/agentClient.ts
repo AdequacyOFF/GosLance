@@ -35,9 +35,9 @@ export class AgentClient {
         console.log('Fallback to ClientFactory...');
         const factory = new ClientFactory();
         if (typeof (factory as any).createFromAgentCard === 'function') {
-          this.client = await (factory as any).createFromAgentCard(agentCard);
+          this.client = await (factory as any).createFromAgentCard(agentCard) as unknown as A2AClient;
         } else {
-          this.client = await factory.createFromUrl(this.baseUrl);
+          this.client = await factory.createFromUrl(this.baseUrl) as unknown as A2AClient;
         }
       }
 
@@ -116,8 +116,8 @@ export class AgentClient {
     const message = response.result?.message;
     if (message && message.parts) {
       const textParts = message.parts
-        .filter((p) => p.kind === 'text' && p.text)
-        .map((p) => p.text as string);
+        .filter((p) => p.kind === 'text' && 'text' in p && p.text)
+        .map((p) => (p as any).text as string);
 
       return textParts.length > 0 ? textParts.join('\n') : null;
     }

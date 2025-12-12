@@ -22,8 +22,10 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
               rel="noopener noreferrer"
             />
           ),
-          code: ({ node, inline, className, children, ...props }) => {
-            return inline ? (
+          code: ({ className, children, ...props }: any) => {
+            // In react-markdown, inline code doesn't have a className starting with "language-"
+            const isInline = !className || !className.startsWith('language-');
+            return isInline ? (
               <code className="inline-code" {...props}>
                 {children}
               </code>
