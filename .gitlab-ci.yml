@@ -30,7 +30,7 @@ deploy:
   image: docker:28.5
   tags:
     - docker
-    - nexus
+    - other
   services:
     - name: docker:dind
       alias: docker
